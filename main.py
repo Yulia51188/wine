@@ -4,6 +4,8 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+import pandas as pd
+
 FOUNDATION_YEAR = 1920
 
 
@@ -24,12 +26,13 @@ env = Environment(
 template = env.get_template('template.html')
 
 company_age = datetime.date.today().year - FOUNDATION_YEAR
-
 years_form = correct_years_form(company_age)
+wine_df = pd.read_excel('wine.xlsx', sheet_name='Лист1')
 
 rendered_page = template.render(
     company_age=company_age,
     years_form=years_form,
+    wines=wine_df.to_dict(orient='records')
 )
 
 with open('index.html', 'w', encoding="utf8") as file:
