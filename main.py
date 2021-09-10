@@ -36,18 +36,21 @@ company_age = datetime.date.today().year - FOUNDATION_YEAR
 years_form = correct_years_form(company_age)
 wine_df = pd.read_excel('wine.xlsx', sheet_name='Лист1')
 
+wine2_df = pd.read_excel('wine2.xlsx', sheet_name='Лист1', na_values='',
+    keep_default_na=False)
+groupby_column = wine2_df.columns[0]
+# print(wine2_df)
+wine2_groups = wine2_df.groupby(by=groupby_column).apply(
+    lambda x: get_wine_record(x, groupby_column)).to_dict()
+# pprint(wine2_groups)
 
 rendered_page = template.render(
     company_age=company_age,
     years_form=years_form,
-    wines=wine_df.to_dict(orient='records')
+    # wines=wine_df.to_dict(orient='records')
+    wines=wine2_groups
 )
 
-wine2_df = pd.read_excel('wine2.xlsx', sheet_name='Лист1', na_values='',
-    keep_default_na=False)
-wine2_groups = wine2_df.groupby(by=GROUPBY_COLUMN).apply(
-    lambda x: get_wine_record(x, GROUPBY_COLUMN)).to_dict()
-pprint(wine2_groups)
 
 with open('index.html', 'w', encoding="utf8") as file:
     file.write(rendered_page)
