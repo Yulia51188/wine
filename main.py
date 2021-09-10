@@ -1,11 +1,8 @@
 import datetime
-
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-
 import pandas as pd
-from pprint import pprint
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 FOUNDATION_YEAR = 1920
 WINE_FILENAME = 'wine3.xlsx'
@@ -20,8 +17,8 @@ def correct_years_form(age):
     return "года"
 
 
-def get_wine_record(df, groupby_column):
-    cutted_df = df.drop(groupby_column, axis=1).fillna(value='')
+def get_wine_records(df, groupby_column):
+    cutted_df = df.drop(groupby_column, axis=1)
     return cutted_df.to_dict(orient='records')
 
 
@@ -34,22 +31,17 @@ template = env.get_template('template.html')
 
 company_age = datetime.date.today().year - FOUNDATION_YEAR
 years_form = correct_years_form(company_age)
-# wine_df = pd.read_excel('wine.xlsx', sheet_name='Лист1')
 
-wine_df = pd.read_excel(WINE_FILENAME, sheet_name='Лист1', na_values='',
-    keep_default_na=False)
+wine_df = pd.read_excel(WINE_FILENAME, sheet_name='Лист1').fillna(value='')
 groupby_column = wine_df.columns[0]
-# print(wine_df)
 wine_groups = wine_df.groupby(by=groupby_column).apply(
-    lambda x: get_wine_record(x, groupby_column)).to_dict()
-pprint(wine_groups)
+    lambda x: get_wine_records(x, groupby_column)).to_dict()
 
 rendered_page = template.render(
     company_age=company_age,
     years_form=years_form,
     wine_collections=wine_groups
 )
-
 
 with open('index.html', 'w', encoding="utf8") as file:
     file.write(rendered_page)
