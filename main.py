@@ -22,29 +22,37 @@ def get_wine_records(df, groupby_column):
     return cutted_df.to_dict(orient='records')
 
 
-env = Environment(
-    loader=FileSystemLoader('.'),
-    autoescape=select_autoescape(['html', 'xml'])
-)
+def load_wine_records(filename=WINE_FILENAME):
+    wine_df = pd.read_excel(filename, sheet_name='Лист1').fillna(value='')
+    groupby_column = wine_df.columns[0]
+    wine_groups = wine_df.groupby(by=groupby_column).apply(
+        lambda x: get_wine_records(x, groupby_column)).to_dict()
+    return wine_groups
 
-template = env.get_template('template.html')
 
-company_age = datetime.date.today().year - FOUNDATION_YEAR
-years_form = correct_years_form(company_age)
+def main():
+    env = Environment(
+        loader=FileSystemLoader('.'),
+        autoescape=select_autoescape(['html', 'xml'])
+    )
+    template = env.get_template('template.html')
+    
+    company_age = datetime.date.today().year - FOUNDATION_YEAR
+    years_form = correct_years_form(company_age)
+    wine_groups = load_wine_records()
+    
+    rendered_page = template.render(
+        company_age=company_age,
+        years_form=years_form,
+        wine_collections=wine_groups
+    )
+    
+    with open('index.html', 'w', encoding="utf8") as file:
+        file.write(rendered_page)
+    
+    server = HTTPServer(('0.0.0.0', 8000), SimpleHTTPRequestHandler)
+    server.serve_forever()
 
-wine_df = pd.read_excel(WINE_FILENAME, sheet_name='Лист1').fillna(value='')
-groupby_column = wine_df.columns[0]
-wine_groups = wine_df.groupby(by=groupby_column).apply(
-    lambda x: get_wine_records(x, groupby_column)).to_dict()
 
-rendered_page = template.render(
-    company_age=company_age,
-    years_form=years_form,
-    wine_collections=wine_groups
-)
-
-with open('index.html', 'w', encoding="utf8") as file:
-    file.write(rendered_page)
-
-server = HTTPServer(('0.0.0.0', 8000), SimpleHTTPRequestHandler)
-server.serve_forever()
+if __name__ == '__main__':
+    main()
