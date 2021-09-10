@@ -1,3 +1,4 @@
+import collections
 import datetime
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
@@ -6,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 FOUNDATION_YEAR = 1920
 WINE_FILENAME = 'catalog_sample.xlsx'
+GROUPBY_KEY = 'Категория'
 
 
 def correct_years_form(age):
@@ -17,16 +19,12 @@ def correct_years_form(age):
     return "года"
 
 
-def get_wine_records(df, groupby_column):
-    cutted_df = df.drop(groupby_column, axis=1)
-    return cutted_df.to_dict(orient='records')
-
-
-def load_wine_records(filename=WINE_FILENAME):
-    wine_df = pd.read_excel(filename, sheet_name='Лист1').fillna(value='')
-    groupby_column = wine_df.columns[0]
-    wine_groups = wine_df.groupby(by=groupby_column).apply(
-        lambda x: get_wine_records(x, groupby_column)).to_dict()
+def load_wine_records(filename=WINE_FILENAME, groupby_key=GROUPBY_KEY):
+    wine_catalog = pd.read_excel(filename, sheet_name='Лист1', 
+        na_values=None, keep_default_na=False).to_dict(orient='records')
+    wine_groups = collections.defaultdict(list)
+    for wine in wine_catalog:
+        wine_groups[wine[groupby_key]].append(wine)
     return wine_groups
 
 
@@ -40,7 +38,7 @@ def main():
     company_age = datetime.date.today().year - FOUNDATION_YEAR
     years_form = correct_years_form(company_age)
     wine_groups = load_wine_records()
-    
+
     rendered_page = template.render(
         company_age=company_age,
         years_form=years_form,
