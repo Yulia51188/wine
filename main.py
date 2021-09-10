@@ -8,7 +8,6 @@ import pandas as pd
 from pprint import pprint
 
 FOUNDATION_YEAR = 1920
-GROUPBY_COLUMN = 'Категория'
 WINE_FILENAME = 'wine2.xlsx'
 
 
@@ -22,7 +21,7 @@ def correct_years_form(age):
 
 
 def get_wine_record(df, groupby_column):
-    cutted_df = df.drop(groupby_column, 1)
+    cutted_df = df.drop(groupby_column, 1).fillna(value='')
     return cutted_df.to_dict(orient='records')
 
 
