@@ -5,8 +5,11 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 import pandas as pd
+from pprint import pprint
 
 FOUNDATION_YEAR = 1920
+GROUPBY_COLUMN = 'Категория'
+WINE_FILENAME = 'wine2.xlsx'
 
 
 def correct_years_form(age):
@@ -16,6 +19,11 @@ def correct_years_form(age):
     if last_number == 0 or last_number > 4:
         return "лет"    
     return "года"
+
+
+def get_wine_record(df, groupby_column):
+    cutted_df = df.drop(groupby_column, 1)
+    return cutted_df.to_dict(orient='records')
 
 
 env = Environment(
@@ -29,11 +37,18 @@ company_age = datetime.date.today().year - FOUNDATION_YEAR
 years_form = correct_years_form(company_age)
 wine_df = pd.read_excel('wine.xlsx', sheet_name='Лист1')
 
+
 rendered_page = template.render(
     company_age=company_age,
     years_form=years_form,
     wines=wine_df.to_dict(orient='records')
 )
+
+wine2_df = pd.read_excel('wine2.xlsx', sheet_name='Лист1', na_values='',
+    keep_default_na=False)
+wine2_groups = wine2_df.groupby(by=GROUPBY_COLUMN).apply(
+    lambda x: get_wine_record(x, GROUPBY_COLUMN)).to_dict()
+pprint(wine2_groups)
 
 with open('index.html', 'w', encoding="utf8") as file:
     file.write(rendered_page)
