@@ -5,7 +5,7 @@ import pandas as pd
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 FOUNDATION_YEAR = 1920
-WINE_FILENAME = 'wine3.xlsx'
+WINE_FILENAME = 'file_sample.xlsx'
 
 
 def correct_years_form(age):
